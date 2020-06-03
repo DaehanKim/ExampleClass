@@ -44,7 +44,9 @@ public class Example {
 			this.templateVar.put(var, ret);
 			return ret;
 		case "NUM":
-			return this.num(kSplit);
+			ret = this.num(kSplit);
+			this.templateVar.put(var, ret);
+			return ret;
 		case "SAMPLE":
 			return this.sample(kSplit);
 		case "EVAL":
@@ -76,9 +78,41 @@ public class Example {
 		return null;
 	}
 
-	private ArrayList<String> num(String[] kSplit) {
-		// TODO Auto-generated method stub
-		return null;
+	private ArrayList<String> num(String[] kSplit) {		
+		String type = kSplit[1];
+		String[] optList = kSplit[2].split(",");
+		Random random = new Random();
+		ArrayList<String> ret = new ArrayList<String> ();
+		if(type.equals("int")){
+			int number=0;
+			number = random.nextInt(Integer.parseInt(optList[1])-Integer.parseInt(optList[0])+1);
+			number+=Integer.parseInt(optList[0]);
+			ret.add(Integer.toString(number));
+		}
+		else if(type.equals("Dec")){
+			float number=0;
+			number = random.nextFloat()*(Integer.parseInt(optList[1])+Integer.parseInt(optList[0]));
+			number-=(float)Integer.parseInt(optList[0]);
+			ret.add(String.valueOf(number));
+		}
+		else if(type.equals("rat")){
+			int number=0;int number2=0;
+			ArrayList<Integer> denominator = new ArrayList<Integer> ();
+			denominator.add(2);
+			denominator.add(3);
+			denominator.add(5);
+			denominator.add(7);
+			while(true){
+				number2=denominator.get(random.nextInt(4));
+				number=random.nextInt((Integer.parseInt(optList[1])-Integer.parseInt(optList[0]))*number2)+Integer.parseInt(optList[0])*number2;
+				if(number%number2!=0)
+					break;
+			}
+			System.out.println(number);
+			System.out.println(number2);
+			ret.add(String.format("\\frac{%s}{%s}",Integer.toString(number),Integer.toString(number2)));
+		}
+		return ret;
 	}
 
 	private ArrayList<String> choose(String[] kSplit) {
@@ -132,8 +166,10 @@ public class Example {
 		String exTemplate = "$y=[a]x+[b]$가 x축과 만나는 점 --> ([x1],0)\r\n" + 
 				"y축과 만나는 점 --> (0,[y1])";
 		String exDescription = "x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!";
+
 		String exConditionJson = "{\"[a]\":\"CHOOSE\\t1\\t0.5,1/2,-2,2,3,5\\t\",\r\n" + 
 				"\"[b]\":\"NUM\\tint\\t-2,3\\t\",\r\n" + 
+
 				"\"[x1]\":\"EVAL\\t-[b]/[a]\",\r\n" + 
 				"\"[y1]\":\"EVAL\\t[b]\"\r\n" + 
 				"}";
