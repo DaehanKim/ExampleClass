@@ -1,6 +1,8 @@
 package parser;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Random;
 
@@ -11,6 +13,7 @@ import com.google.gson.JsonParser;
 public class Example {
 	// 일단 DB에서 꺼낸다고 생각하고 그냥 넣어둠.
 	
+	public Dictionary<String, ArrayList<String>> templateVar = new Hashtable(); 
 	
 
 	public JsonElement parseCondition(String jsonData) {
@@ -29,13 +32,16 @@ public class Example {
 		return outStr;
 	}
 	
-	public ArrayList<String> interpretKeyword(String keyword) {
+	public ArrayList<String> interpretKeyword(String var, String keyword) {
 //	returns output numbers or words	
 		keyword = keyword.replace("\"", "");
 		String[] kSplit = keyword.split("\\\\t",-1);
+		ArrayList<String> ret;
 		switch (kSplit[0]) {
 		case "CHOOSE":
-			return this.choose(kSplit);
+			ret = this.choose(kSplit);
+			this.templateVar.put(var, ret);
+			return ret;
 		case "NUM":
 			return this.num(kSplit);
 		case "SAMPLE":
@@ -116,8 +122,9 @@ public class Example {
 
 		for(Map.Entry<String, JsonElement> entry : condition.getAsJsonObject().entrySet()) {
 					System.out.println(entry.getKey() + " - " + entry.getValue().toString());
-					ArrayList<String> out = parser.interpretKeyword(entry.getValue().toString());
+					ArrayList<String> out = parser.interpretKeyword(entry.getKey(),entry.getValue().toString());
 					System.out.println(out);
+					System.out.println(parser.templateVar);
 				}
 
 		
