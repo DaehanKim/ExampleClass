@@ -2,6 +2,7 @@ package parser;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Random;
@@ -103,12 +104,35 @@ public class Example {
 		return false;
 	}
 
+	public String fillWithDictionary(String template) {
+		String filledTemplate = new String(template);
+		Enumeration<String> keySet = this.templateVar.keys();
+		while (keySet.hasMoreElements()) {
+			String key = keySet.nextElement();
+			System.out.println("key : "+key);
+			// if key is not in the template, pass on
+			if (!template.contains(key)) {continue;}
+			// if key is in the template, replace it with actual values
+			StringBuilder valString = new StringBuilder();
+			for (int i =0; i < this.templateVar.get(key).size(); i++) {
+				valString.append(this.templateVar.get(key).get(i));
+				if (i < this.templateVar.get(key).size()-1)
+					{valString.append(", ");}
+			}
+			System.out.println("converted string : "+valString.toString());
+			filledTemplate = filledTemplate.replace(key, valString.toString());
+			
+		}
+
+		return filledTemplate;
+	}
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		String exTemplate = "$y=[a]x+[b]$가 x축과 만나는 점 --> ([x1],0)\r\n" + 
 				"y축과 만나는 점 --> (0,[y1])";
 		String exDescription = "x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!";
-		String exConditionJson = "{\"[a]\":\"CHOOSE\\t2\\tthis,is,-2,2,3,5\\t\",\r\n" + 
+		String exConditionJson = "{\"[a]\":\"CHOOSE\\t1\\t0.5,1/2,-2,2,3,5\\t\",\r\n" + 
 				"\"[b]\":\"NUM\\tint\\t-2,3\\t\",\r\n" + 
 				"\"[x1]\":\"EVAL\\t-[b]/[a]\",\r\n" + 
 				"\"[y1]\":\"EVAL\\t[b]\"\r\n" + 
@@ -126,6 +150,10 @@ public class Example {
 					System.out.println(out);
 					System.out.println(parser.templateVar);
 				}
+		String filledTemplate = parser.fillWithDictionary(exTemplate);
+		String filledScript = parser.fillWithDictionary(exDescription);
+		System.out.println("filled up template : \n"+filledTemplate);
+		System.out.println("filled up script : \n"+filledScript);
 
 		
 		
