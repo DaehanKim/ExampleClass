@@ -6,6 +6,9 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Random;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -43,9 +46,13 @@ public class Example {
 			this.templateVar.put(var, ret);
 			return ret;
 		case "SAMPLE":
-			return this.sample(kSplit);
+			ret = this.sample(kSplit);
+			this.templateVar.put(var, ret);
+			return ret;
 		case "EVAL":
-			return this.eval(kSplit);
+			ret = this.eval(kSplit);
+			this.templateVar.put(var, ret);
+			return ret;
 		case "IMAGE":
 			return this.image(kSplit);
 		}
@@ -53,14 +60,20 @@ public class Example {
 		return null;
 		
 	}
-	
-	
-	
-
 
 	private ArrayList<String> eval(String[] kSplit) {
-		// TODO Auto-generated method stub
-		return null;
+		// --는 +이므로 제거
+		String foo = this.fillWithDictionary(kSplit[1]).replace("--","");
+		ArrayList<String> ret = new ArrayList<String> ();
+		try{
+			ScriptEngineManager mgr = new ScriptEngineManager();
+		    ScriptEngine engine = mgr.getEngineByName("JavaScript");
+		    ret.add(String.valueOf(engine.eval(foo)));
+			}catch(ScriptException e){
+				System.err.println("ERROR "+e.getMessage());
+		}
+		
+		return ret;
 	}
 
 	private ArrayList<String> image(String[] kSplit) {
@@ -69,8 +82,46 @@ public class Example {
 	}
 
 	private ArrayList<String> sample(String[] kSplit) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<String> ret = new ArrayList<String> ();
+		int n = Integer.parseInt(kSplit[1]);
+		String slc = kSplit[2].substring(4, kSplit[2].length()-1);
+		String[] slcs = slc.split(",");
+		Random random = new Random();
+		double sample=0;
+		int prev=Integer.parseInt(slcs[0]);
+		int next=Integer.parseInt(slcs[1]);
+		if(kSplit[2].contains("nor")){
+			for(int i=0;i<n;i++)
+			{
+				sample = random.nextGaussian()*next+prev;
+				if(kSplit[3].equals("nodup"))
+				{
+					if(ret.contains(Integer.toString((int)sample)))
+						i--;
+					else
+						ret.add(Integer.toString((int)sample));
+				}
+				else
+					ret.add(Integer.toString((int)sample));
+			}
+		}
+		else if(kSplit[2].contains("Uni")){
+			for(int i=0;i<n;i++)
+			{
+				sample = random.nextDouble()*(next-prev);
+				sample+=(double)prev;
+				if(kSplit[3].equals("nodup"))
+				{
+					if(ret.contains(Integer.toString((int)sample)))
+						i--;
+					else
+						ret.add(Integer.toString((int)sample));
+				}
+				else
+					ret.add(Integer.toString((int)sample));
+			}
+		}
+		return ret;
 	}
 
 	private ArrayList<String> num(String[] kSplit) {		
@@ -80,18 +131,19 @@ public class Example {
 		ArrayList<String> ret = new ArrayList<String> ();
 		if(type.equals("int")){
 			int number=0;
-			number = random.nextInt(Integer.parseInt(optList[1])-Integer.parseInt(optList[0])+1);
+			number = random.nextInt(Integer.parseInt(optList[1])-Integer.parseInt(optList[0]));
 			number+=Integer.parseInt(optList[0]);
 			ret.add(Integer.toString(number));
 		}
 		else if(type.equals("Dec")){
 			float number=0;
-			number = random.nextFloat()*(Integer.parseInt(optList[1])+Integer.parseInt(optList[0]));
-			number-=(float)Integer.parseInt(optList[0]);
-			ret.add(String.valueOf(number));
+			number = random.nextFloat()*(Integer.parseInt(optList[1])-Integer.parseInt(optList[0]));
+			number+=(float)Integer.parseInt(optList[0]);
+			ret.add(String.valueOf(number));	
 		}
 		else if(type.equals("rat")){
 			int number=0;int number2=0;
+			//분모는 2, 3, 5, 7로 고정
 			ArrayList<Integer> denominator = new ArrayList<Integer> ();
 			denominator.add(2);
 			denominator.add(3);
@@ -105,6 +157,7 @@ public class Example {
 			}
 			System.out.println(number);
 			System.out.println(number2);
+			//분수 일단 frac으로 넣음
 			ret.add(String.format("\\frac{%s}{%s}",Integer.toString(number),Integer.toString(number2)));
 		}
 		return ret;
