@@ -74,8 +74,46 @@ public class Example {
 	}
 
 	private ArrayList<String> sample(String[] kSplit) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<String> ret = new ArrayList<String> ();
+		int n = Integer.parseInt(kSplit[1]);
+		String slc = kSplit[2].substring(4, kSplit[2].length()-1);
+		String[] slcs = slc.split(",");
+		Random random = new Random();
+		double sample=0;
+		int prev=Integer.parseInt(slcs[0]);
+		int next=Integer.parseInt(slcs[1]);
+		if(kSplit[2].contains("nor")){
+			for(int i=0;i<n;i++)
+			{
+				sample = random.nextGaussian()*next+prev;
+				if(kSplit[3].equals("nodup"))
+				{
+					if(ret.contains(Integer.toString((int)sample)))
+						i--;
+					else
+						ret.add(Integer.toString((int)sample));
+				}
+				else
+					ret.add(Integer.toString((int)sample));
+			}
+		}
+		else if(kSplit[2].contains("Uni")){
+			for(int i=0;i<n;i++)
+			{
+				sample = random.nextDouble()*(next-prev);
+				sample+=(double)prev;
+				if(kSplit[3].equals("nodup"))
+				{
+					if(ret.contains(Integer.toString((int)sample)))
+						i--;
+					else
+						ret.add(Integer.toString((int)sample));
+				}
+				else
+					ret.add(Integer.toString((int)sample));
+			}
+		}
+		return ret;
 	}
 
 	private ArrayList<String> num(String[] kSplit) {		
@@ -85,18 +123,19 @@ public class Example {
 		ArrayList<String> ret = new ArrayList<String> ();
 		if(type.equals("int")){
 			int number=0;
-			number = random.nextInt(Integer.parseInt(optList[1])-Integer.parseInt(optList[0])+1);
+			number = random.nextInt(Integer.parseInt(optList[1])-Integer.parseInt(optList[0]));
 			number+=Integer.parseInt(optList[0]);
 			ret.add(Integer.toString(number));
 		}
 		else if(type.equals("Dec")){
 			float number=0;
-			number = random.nextFloat()*(Integer.parseInt(optList[1])+Integer.parseInt(optList[0]));
-			number-=(float)Integer.parseInt(optList[0]);
-			ret.add(String.valueOf(number));
+			number = random.nextFloat()*(Integer.parseInt(optList[1])-Integer.parseInt(optList[0]));
+			number+=(float)Integer.parseInt(optList[0]);
+			ret.add(String.valueOf(number));	
 		}
 		else if(type.equals("rat")){
 			int number=0;int number2=0;
+			//분모는 2, 3, 5, 7로 고정
 			ArrayList<Integer> denominator = new ArrayList<Integer> ();
 			denominator.add(2);
 			denominator.add(3);
@@ -110,6 +149,7 @@ public class Example {
 			}
 			System.out.println(number);
 			System.out.println(number2);
+			//분수 일단 frac으로 넣음
 			ret.add(String.format("\\frac{%s}{%s}",Integer.toString(number),Integer.toString(number2)));
 		}
 		return ret;
