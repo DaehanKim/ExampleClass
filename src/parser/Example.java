@@ -27,11 +27,6 @@ public class Example {
 		
 	}
 	
-	public String replaceWithJsonElement(String inputStr,JsonElement condOutput) {
-		// jsonobject 이용해서 string에 있는거 전부 mapping함.
-		String outStr = "";
-		return outStr;
-	}
 	
 	public ArrayList<String> interpretKeyword(String var, String keyword) {
 //	returns output numbers or words	
@@ -143,17 +138,18 @@ public class Example {
 		Enumeration<String> keySet = this.templateVar.keys();
 		while (keySet.hasMoreElements()) {
 			String key = keySet.nextElement();
-			System.out.println("key : "+key);
+//			System.out.println("key : "+key);
 			// if key is not in the template, pass on
 			if (!template.contains(key)) {continue;}
 			// if key is in the template, replace it with actual values
 			StringBuilder valString = new StringBuilder();
+			//iterate through resulting array list to make a string
 			for (int i =0; i < this.templateVar.get(key).size(); i++) {
 				valString.append(this.templateVar.get(key).get(i));
 				if (i < this.templateVar.get(key).size()-1)
 					{valString.append(", ");}
 			}
-			System.out.println("converted string : "+valString.toString());
+//			System.out.println("converted string : "+valString.toString());
 			filledTemplate = filledTemplate.replace(key, valString.toString());
 			
 		}
