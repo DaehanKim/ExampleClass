@@ -1,4 +1,4 @@
-//package parser;
+package parser;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -68,7 +68,7 @@ public class Example {
 
 	private ArrayList<String> eval(String[] kSplit) {
 		// --는 +이므로 제거
-	    String foo = this.fillWithDictionary(kSplit[1]).replace("--","");
+		String foo = this.fillWithDictionary(kSplit[1]).replace("--","");
 		ArrayList<String> ret = new ArrayList<String> ();
 		try{
 			ScriptEngineManager mgr = new ScriptEngineManager();
