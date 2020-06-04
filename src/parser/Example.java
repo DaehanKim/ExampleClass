@@ -1,4 +1,4 @@
-package parser;
+//package parser;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -6,6 +6,9 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Random;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -48,9 +51,13 @@ public class Example {
 			this.templateVar.put(var, ret);
 			return ret;
 		case "SAMPLE":
-			return this.sample(kSplit);
+			ret = this.sample(kSplit);
+			this.templateVar.put(var, ret);
+			return ret;
 		case "EVAL":
-			return this.eval(kSplit);
+			ret = this.eval(kSplit);
+			this.templateVar.put(var, ret);
+			return ret;
 		case "IMAGE":
 			return this.image(kSplit);
 		}
@@ -58,14 +65,20 @@ public class Example {
 		return null;
 		
 	}
-	
-	
-	
-
 
 	private ArrayList<String> eval(String[] kSplit) {
-		// TODO Auto-generated method stub
-		return null;
+		// --는 +이므로 제거
+	    String foo = this.fillWithDictionary(kSplit[1]).replace("--","");
+		ArrayList<String> ret = new ArrayList<String> ();
+		try{
+			ScriptEngineManager mgr = new ScriptEngineManager();
+		    ScriptEngine engine = mgr.getEngineByName("JavaScript");
+		    ret.add(String.valueOf(engine.eval(foo)));
+			}catch(ScriptException e){
+				System.err.println("ERROR "+e.getMessage());
+		}
+		
+		return ret;
 	}
 
 	private ArrayList<String> image(String[] kSplit) {
