@@ -19,13 +19,32 @@ public class Example {
 	
 	public Dictionary<String, ArrayList<String>> templateVar = new Hashtable(); 
 	
+	private String exTemplate;
+	private String exDescription;
+	private String exConditionJson;
 
-	public JsonElement parseCondition(String jsonData) {
+	Example(String exTemplate, String exDescription, String exConditionJson){
+		this.exTemplate=exTemplate;
+		this.exDescription=exDescription;
+		this.exConditionJson=exConditionJson;
+	}
+
+	public String getExTemplate(){
+		return this.exTemplate;
+	}
+	public String getExDescription(){
+		return this.exDescription;
+	}
+	public String getExConditionJson(){
+		return this.exConditionJson;
+	}
+
+	public JsonElement parseCondition() {
 		
 		@SuppressWarnings("deprecation")
 		JsonParser parser = new JsonParser();
 		@SuppressWarnings("deprecation")
-		JsonElement element = parser.parse(jsonData);		
+		JsonElement element = parser.parse(this.exConditionJson);		
 		return element;
 		
 	}
@@ -43,11 +62,21 @@ public class Example {
 		ArrayList<String> ret;
 		switch (kSplit[0]) {
 		case "CHOOSE":
-			ret = this.choose(kSplit);
+			while(true){
+				ret = this.choose(kSplit);
+				if(checkCondition(ret,kSplit[3]))
+					break;
+				System.out.println("Don't meet the conditions "+ret.get(0));
+			}
 			this.templateVar.put(var, ret);
 			return ret;
 		case "NUM":
-			ret = this.num(kSplit);
+			while(true){
+				ret = this.num(kSplit);
+				if(checkCondition(ret,kSplit[3]))
+					break;
+				System.out.println("Don't meet the conditions "+ret.get(0));
+			}
 			this.templateVar.put(var, ret);
 			return ret;
 		case "SAMPLE":
@@ -72,8 +101,8 @@ public class Example {
 		ArrayList<String> ret = new ArrayList<String> ();
 		try{
 			ScriptEngineManager mgr = new ScriptEngineManager();
-		    ScriptEngine engine = mgr.getEngineByName("JavaScript");
-		    ret.add(String.valueOf(engine.eval(foo)));
+			ScriptEngine engine = mgr.getEngineByName("JavaScript");
+			ret.add(String.valueOf(engine.eval(foo)));
 			}catch(ScriptException e){
 				System.err.println("ERROR "+e.getMessage());
 		}
@@ -186,9 +215,47 @@ public class Example {
 		return outputList;
 	}
 
-	private boolean checkCondition(String output, String cond) {
-		// not implemented yet
-		return false;
+	private boolean checkCondition(ArrayList<String> outputs, String cond) {
+		if(cond.equals(""))
+			return true;
+		String filledCond = this.fillWithDictionary(cond);
+		String[] conds = filledCond.split(",");
+		for(int i=0;i<outputs.size();i++){
+			Float output = Float.parseFloat(outputs.get(i));
+			for(int j=0;j<conds.length;j++)
+			{
+				//분수 처리를 위한 eval연산
+				Float checker=null;
+				try{
+					checker=Float.parseFloat(conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')')));
+				}catch(NumberFormatException e){
+					try{
+						ScriptEngineManager mgr = new ScriptEngineManager();
+						ScriptEngine engine = mgr.getEngineByName("JavaScript");							
+						checker=Float.parseFloat(String.valueOf(engine.eval(conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')')))));
+						}catch(ScriptException se){
+							System.err.println("ERROR "+se.getMessage());
+					}
+
+				}
+				//condition check
+				if(conds[j].contains("neq")){
+					if(output.compareTo(checker)==0)
+						return false;
+				}
+				else if(conds[j].contains("lt")){
+					if(output.compareTo(checker)==0||output.compareTo(checker)==1)
+						return false;
+				}
+				else if(conds[j].contains("isPrime")){
+					for(int k=2;k<output/2;k++){
+						if(output.intValue()%k==0)
+							return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	public String fillWithDictionary(String template) {
@@ -196,7 +263,7 @@ public class Example {
 		Enumeration<String> keySet = this.templateVar.keys();
 		while (keySet.hasMoreElements()) {
 			String key = keySet.nextElement();
-			System.out.println("key : "+key);
+			// System.out.println("key : "+key);
 			// if key is not in the template, pass on
 			if (!template.contains(key)) {continue;}
 			// if key is in the template, replace it with actual values
@@ -206,7 +273,7 @@ public class Example {
 				if (i < this.templateVar.get(key).size()-1)
 					{valString.append(", ");}
 			}
-			System.out.println("converted string : "+valString.toString());
+			// System.out.println("converted string : "+valString.toString());
 			filledTemplate = filledTemplate.replace(key, valString.toString());
 			
 		}
@@ -214,24 +281,18 @@ public class Example {
 		return filledTemplate;
 	}
 	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		String exTemplate = "$y=[a]x+[b]$가 x축과 만나는 점 --> ([x1],0)\r\n" + 
-				"y축과 만나는 점 --> (0,[y1])";
-		String exDescription = "x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!";
-
-		String exConditionJson = "{\"[a]\":\"CHOOSE\\t1\\t0.5,1/2,-2,2,3,5\\t\",\r\n" + 
-				"\"[b]\":\"NUM\\tint\\t-2,3\\t\",\r\n" + 
-
-				"\"[x1]\":\"EVAL\\t-[b]/[a]\",\r\n" + 
+	public static void main(String[] args) {		
+		Example parser = new Example("$y=[a]x+[b]$가 x축과 만나는 점 --> ([x1],0)\r\n" + 
+				"y축과 만나는 점 --> (0,[y1])",
+				"x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!",
+				 "{\"[a]\":\"CHOOSE\\t1\\t0.5,1/2,-1,2,3,5\\t\",\r\n" + 
+				"\"[b]\":\"NUM\\tint\\t-2,3\\tneq(0),lt([a])\",\r\n" + 
+				"\"[x1]\":\"EVAL\\t(-[b])/([a])\",\r\n" + 
 				"\"[y1]\":\"EVAL\\t[b]\"\r\n" + 
-				"}";
+				"}");
 		
-		
-		Example parser = new Example();
-
-		
-		JsonElement condition = parser.parseCondition(exConditionJson);
+		//JsonElement condition = parser.parseCondition(parser.getExConditionJson());
+		JsonElement condition = parser.parseCondition();
 
 		for(Map.Entry<String, JsonElement> entry : condition.getAsJsonObject().entrySet()) {
 					System.out.println(entry.getKey() + " - " + entry.getValue().toString());
@@ -239,12 +300,10 @@ public class Example {
 					System.out.println(out);
 					System.out.println(parser.templateVar);
 				}
-		String filledTemplate = parser.fillWithDictionary(exTemplate);
-		String filledScript = parser.fillWithDictionary(exDescription);
+		String filledTemplate = parser.fillWithDictionary(parser.getExTemplate());
+		String filledScript = parser.fillWithDictionary(parser.getExDescription());
 		System.out.println("filled up template : \n"+filledTemplate);
-		System.out.println("filled up script : \n"+filledScript);
-
-		
+		System.out.println("filled up script : \n"+filledScript);		
 		
 	}
 
