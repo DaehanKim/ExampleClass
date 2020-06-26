@@ -1,4 +1,4 @@
-package parser;
+//package parser;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -9,6 +9,8 @@ import java.util.Random;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import javax.script.ScriptContext;
+import javax.script.Bindings;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -102,7 +104,9 @@ public class Example {
 		try{
 			ScriptEngineManager mgr = new ScriptEngineManager();
 			ScriptEngine engine = mgr.getEngineByName("JavaScript");
+			//engine.eval("require('core-js')");
 			ret.add(String.valueOf(engine.eval(foo)));
+			System.out.println(String.valueOf(engine.eval(foo)));
 			}catch(ScriptException e){
 				System.err.println("ERROR "+e.getMessage());
 		}
@@ -117,7 +121,7 @@ public class Example {
 
 	private ArrayList<String> sample(String[] kSplit) {
 		ArrayList<String> ret = new ArrayList<String> ();
-		int n = Integer.parseInt(kSplit[1]);
+		int n = Integer.parseInt(this.fillWithDictionary(kSplit[1]));
 		String slc = kSplit[2].substring(4, kSplit[2].length()-1);
 		String[] slcs = slc.split(",");
 		Random random = new Random();
@@ -160,7 +164,7 @@ public class Example {
 
 	private ArrayList<String> num(String[] kSplit) {		
 		String type = kSplit[1];
-		String[] optList = kSplit[2].split(",");
+		String[] optList = this.fillWithDictionary(kSplit[2]).split(",");
 		Random random = new Random();
 		ArrayList<String> ret = new ArrayList<String> ();
 		if(type.equals("int")){
@@ -173,7 +177,7 @@ public class Example {
 			float number=0;
 			number = random.nextFloat()*(Integer.parseInt(optList[1])-Integer.parseInt(optList[0]));
 			number+=(float)Integer.parseInt(optList[0]);
-			ret.add(String.valueOf(number));	
+			ret.add(String.format("%.1f",number));	
 		}
 		else if(type.equals("rat")){
 			int number=0;int number2=0;
@@ -282,15 +286,20 @@ public class Example {
 	}
 	
 	public static void main(String[] args) {		
-		Example parser = new Example("$y=[a]x+[b]$가 x축과 만나는 점 --> ([x1],0)\r\n" + 
-				"y축과 만나는 점 --> (0,[y1])",
+		Example parser = new Example("$y=[a]x+[b]$가 x축과 [c]만나는 점 --> ([x1],0)\r\n" + 
+				"[x1] ~ [모든 경우]의 도수는 [계급의 도수]",
 				"x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!",
-				 "{\"[a]\":\"CHOOSE\\t1\\t0.5,1/2,-1,2,3,5\\t\",\r\n" + 
-				"\"[b]\":\"NUM\\tint\\t-2,3\\tneq(0),lt([a])\",\r\n" + 
-				"\"[x1]\":\"EVAL\\t(-[b])/([a])\",\r\n" + 
-				"\"[y1]\":\"EVAL\\t[b]\"\r\n" + 
+				"{\"[N]\":\"NUM\tint\t4,7\t\",\r\n" +  
+				"\"[M]\":\"NUM\tint\t2,4\t\",\r\n" +
+				"\"[C]\":\"NUM\tDec\t0,1\t\",\r\n" +
+				"\"[D]\":\"EVAL\t1-[C]\",\r\n" +
+				"\"[N-1]\":\"EVAL\t[N]-1\t\",\r\n" +
+				"\"[M-1]\":\"EVAL\t[M]-1\t\",\r\n" +
+				"\"[N-M+1]\":\"EVAL\t[N]-[M]+1\t\",\r\n" +
+				"\"[답]\":\"EVAL\tvar ans=1;for(var i=[N-M+1];i<=[N];i++)ans*=i; for(var i=1;i<=[M];i++)ans/=i\"\r\n" +  
+				//"\"[y1]\":\"EVAL\\teval(([[c]].map(function(n){return n*n})).join('+'))\"\r\n" + 
 				"}");
-		
+
 		//JsonElement condition = parser.parseCondition(parser.getExConditionJson());
 		JsonElement condition = parser.parseCondition();
 
