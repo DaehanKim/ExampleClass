@@ -1,6 +1,7 @@
 //package parser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -24,7 +25,6 @@ public class Example {
 	private String exTemplate;
 	private String exDescription;
 	private String exConditionJson;
-
 	Example(String exTemplate, String exDescription, String exConditionJson){
 		this.exTemplate=exTemplate;
 		this.exDescription=exDescription;
@@ -50,13 +50,7 @@ public class Example {
 		return element;
 		
 	}
-	
-	public String replaceWithJsonElement(String inputStr,JsonElement condOutput) {
-		// jsonobject 이용해서 string에 있는거 전부 mapping함.
-		String outStr = "";
-		return outStr;
-	}
-	
+		
 	public ArrayList<String> interpretKeyword(String var, String keyword) {
 //	returns output numbers or words	
 		keyword = keyword.replace("\"", "");
@@ -123,6 +117,7 @@ public class Example {
 		ArrayList<String> ret = new ArrayList<String> ();
 		int n = Integer.parseInt(this.fillWithDictionary(kSplit[1]));
 		String slc = kSplit[2].substring(4, kSplit[2].length()-1);
+		slc=this.fillWithDictionary(slc);
 		String[] slcs = slc.split(",");
 		Random random = new Random();
 		double sample=0;
@@ -285,19 +280,135 @@ public class Example {
 		return filledTemplate;
 	}
 	
-	public static void main(String[] args) {		
+	public String arrayToString(ArrayList<String> values){
+		String ret ="";
+		for(String s : values)
+			ret+=", " + s;
+		ret=ret.replaceFirst(", ","");
+		return ret;
+	}
+
+	public ArrayList<String> makeVar(){
+		if(this.templateVar.get("[자료]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add(arrayToString(this.templateVar.get("[제목]")));
+			samples.add(arrayToString(this.templateVar.get("[단위]")));
+			samples.add(arrayToString(this.templateVar.get("[자료]")));
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
+	public ArrayList<String> makeSal(){
+		if(this.templateVar.get("[자료]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add(arrayToString(this.templateVar.get("[제목]")));
+			samples.add(arrayToString(this.templateVar.get("[단위]")));
+			samples.add("줄기");
+			samples.add("잎");
+			String[] temp = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			Arrays.sort(temp);
+			String stems="",leaves="";
+			for(int i=0;i<temp.length;i++){		
+				if(stems.contains(temp[i].substring(0,1)))
+					leaves+=" "+temp[i].substring(1,2);
+				else
+				{
+					stems+="\n"+temp[i].substring(0,1);
+					leaves+="\n"+temp[i].substring(1,2);
+				}
+			}
+			stems=stems.replaceFirst("\n","");
+			leaves=leaves.replaceFirst("\n","");
+			samples.add(stems);
+			samples.add(leaves);
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
+	public ArrayList<String> makeFdt(){
+		if(this.templateVar.get("[자료]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목]")), arrayToString(this.templateVar.get("[단위]"))));
+			samples.add("도수(명)");
+			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			for(int i=0;i<frequency.length;i++){
+				int lvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+i*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
+				int rvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+(i+1)*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
+				samples.add(String.format("%d ~ %d", lvalue, rvalue));
+				samples.add(frequency[i]);
+			}
+			samples.add("합계");
+			samples.add(arrayToString(this.templateVar.get("[도수의 총합]")));
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
+	public ArrayList<String> makeRfdt(){		
+		if(this.templateVar.get("[자료]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목]")), arrayToString(this.templateVar.get("[단위]"))));
+			samples.add("도수(명)");
+			samples.add("상대도수");
+			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			for(int i=0;i<frequency.length;i++){
+				int lvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+i*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
+				int rvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+(i+1)*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
+				samples.add(String.format("%d ~ %d", lvalue, rvalue));
+				samples.add(frequency[i]);
+				samples.add(String.format("$\\frac{%s}{%s}$", frequency[i], arrayToString(this.templateVar.get("[도수의 총합]"))));
+			}
+			samples.add("합계");
+			samples.add(arrayToString(this.templateVar.get("[도수의 총합]")));
+			samples.add("1");
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
+	public ArrayList<String> makeDev(){
+		if(this.templateVar.get("[자료]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add("변량");
+			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			int sum=0;
+			for(int i=0;i<frequency.length;i++){
+				samples.add(frequency[i]);
+				sum+=Integer.parseInt(frequency[i]);
+			}
+			double mean = (double)sum/frequency.length;
+			samples.add("편차");
+			for(int i=0;i<frequency.length;i++)
+				samples.add(String.format("%.1f", Double.valueOf(frequency[i])-mean));
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
+	public static void main(String[] args) {
 		Example parser = new Example("$y=[a]x+[b]$가 x축과 [c]만나는 점 --> ([x1],0)\r\n" + 
 				"[x1] ~ [모든 경우]의 도수는 [계급의 도수]",
 				"x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!",
-				"{\"[N]\":\"NUM\tint\t4,7\t\",\r\n" +  
-				"\"[M]\":\"NUM\tint\t2,4\t\",\r\n" +
-				"\"[C]\":\"NUM\tDec\t0,1\t\",\r\n" +
-				"\"[D]\":\"EVAL\t1-[C]\",\r\n" +
-				"\"[N-1]\":\"EVAL\t[N]-1\t\",\r\n" +
-				"\"[M-1]\":\"EVAL\t[M]-1\t\",\r\n" +
-				"\"[N-M+1]\":\"EVAL\t[N]-[M]+1\t\",\r\n" +
-				"\"[답]\":\"EVAL\tvar ans=1;for(var i=[N-M+1];i<=[N];i++)ans*=i; for(var i=1;i<=[M];i++)ans/=i\"\r\n" +  
-				//"\"[y1]\":\"EVAL\\teval(([[c]].map(function(n){return n*n})).join('+'))\"\r\n" + 
+				"{\"[A]\":\"CHOOSE\t1\t4\t\",\r\n" +
+				"\"[최솟값]\":\"CHOOSE\t1\t40,50,60\t\",\r\n" +
+				"\"[계급의 크기]\":\"CHOOSE\t1\t5,10\t\",\r\n" +
+				"\"[제목]\":\"CHOOSE\t1\t몸무게\t\",\r\n" +
+				"\"[단위]\":\"CHOOSE\t1\tkg\t\",\r\n" +
+				"\"[자료]\":\"SAMPLE\t[A]\tUni(1,10)\tnodup\",\r\n" +  
+				"\"[도수의 총합]\":\"EVAL\teval(([[자료]]).join('+'))\",\r\n" +
+				"\"[답2]\":\"EVAL\t[[자료]].sort(function(a,b){return a-b;}).toString()\"\r\n" +  
 				"}");
 
 		//JsonElement condition = parser.parseCondition(parser.getExConditionJson());
@@ -313,7 +424,9 @@ public class Example {
 		String filledScript = parser.fillWithDictionary(parser.getExDescription());
 		System.out.println("filled up template : \n"+filledTemplate);
 		System.out.println("filled up script : \n"+filledScript);		
-		
+		ArrayList<String> samples =  parser.makeRfdt();
+		for(String sample : samples)
+			System.out.println(sample);
 	}
 
 	
