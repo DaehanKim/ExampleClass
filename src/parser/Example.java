@@ -238,14 +238,17 @@ public class Example {
 
 				}
 				//condition check
+				//x와 다른
 				if(conds[j].contains("neq")){
 					if(output.compareTo(checker)==0)
 						return false;
 				}
+				//x보다 작은
 				else if(conds[j].contains("lt")){
 					if(output.compareTo(checker)==0||output.compareTo(checker)==1)
 						return false;
 				}
+				//소수 여야 함
 				else if(conds[j].contains("isPrime")){
 					for(int k=2;k<output/2;k++){
 						if(output.intValue()%k==0)
@@ -288,6 +291,7 @@ public class Example {
 		return ret;
 	}
 
+	//변량을 표로 만들기 위한 데이터
 	public ArrayList<String> makeVar(){
 		if(this.templateVar.get("[자료]")!=null)
 		{
@@ -301,6 +305,7 @@ public class Example {
 		return null;
 	}
 
+	//줄기와 잎 그림을 표로 만들기 위한 데이터
 	public ArrayList<String> makeSal(){
 		if(this.templateVar.get("[자료]")!=null)
 		{
@@ -331,6 +336,7 @@ public class Example {
 		return null;
 	}
 
+	//도수분포표를 만들기 위한 데이터
 	public ArrayList<String> makeFdt(){
 		if(this.templateVar.get("[자료]")!=null)
 		{
@@ -352,6 +358,7 @@ public class Example {
 		return null;
 	}
 
+	//상대도수분포표를 만들기 위한 데이터
 	public ArrayList<String> makeRfdt(){		
 		if(this.templateVar.get("[자료]")!=null)
 		{
@@ -376,6 +383,7 @@ public class Example {
 		return null;
 	}
 
+	//편차 표를 만들기 위한 데이터
 	public ArrayList<String> makeDev(){
 		if(this.templateVar.get("[자료]")!=null)
 		{
@@ -397,17 +405,41 @@ public class Example {
 		return null;
 	}
 
+	//두개의 변량을 표로 만들기 위한 데이터
+	public ArrayList<String> makeDoubleVar(){
+		if(this.templateVar.get("[자료1]")!=null || this.templateVar.get("[자료2]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add(arrayToString(this.templateVar.get("[공통]")));
+			int num = Integer.parseInt(arrayToString(this.templateVar.get("[개수]")));
+			for(int i=0;i<num;i++)
+				samples.add(Character.toString((char)(i+65)));
+			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목1]")), arrayToString(this.templateVar.get("[단위]"))));
+			for(String res : this.templateVar.get("[자료1]"))
+				samples.add(res);
+			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목2]")), arrayToString(this.templateVar.get("[단위]"))));
+			for(String res : this.templateVar.get("[자료2]"))
+				samples.add(res);
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
 	public static void main(String[] args) {
 		Example parser = new Example("$y=[a]x+[b]$가 x축과 [c]만나는 점 --> ([x1],0)\r\n" + 
 				"[x1] ~ [모든 경우]의 도수는 [계급의 도수]",
 				"x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!",
 				"{\"[A]\":\"CHOOSE\t1\t4\t\",\r\n" +
-				"\"[최솟값]\":\"CHOOSE\t1\t40,50,60\t\",\r\n" +
-				"\"[계급의 크기]\":\"CHOOSE\t1\t5,10\t\",\r\n" +
-				"\"[제목]\":\"CHOOSE\t1\t몸무게\t\",\r\n" +
-				"\"[단위]\":\"CHOOSE\t1\tkg\t\",\r\n" +
-				"\"[자료]\":\"SAMPLE\t[A]\tUni(1,10)\tnodup\",\r\n" +  
-				"\"[도수의 총합]\":\"EVAL\teval(([[자료]]).join('+'))\",\r\n" +
+				"\"[공통]\":\"CHOOSE\t1\t학생\t\",\r\n" +
+				"\"[개수]\":\"NUM\tint\t4,8\t\",\r\n" +
+				// "\"[제목1],[제목2],[단위],[최소]\":\"PAIRCHOOSE\t1\t1학년_2학년_반_1\t\",\r\n" +
+				"\"[제목1]\":\"CHOOSE\t1\t1학년\t\",\r\n" +
+				"\"[제목2]\":\"CHOOSE\t1\t2학년\t\",\r\n" +
+				"\"[단위]\":\"CHOOSE\t1\t반\t\",\r\n" +
+				"\"[최소]\":\"CHOOSE\t1\t1\t\",\r\n" +
+				"\"[자료1]\":\"SAMPLE\t[개수]\tUni([최소],8)\t\",\r\n" +
+				"\"[자료2]\":\"SAMPLE\t[개수]\tUni([최소],8)\t\",\r\n" +
 				"\"[답2]\":\"EVAL\t[[자료]].sort(function(a,b){return a-b;}).toString()\"\r\n" +  
 				"}");
 
@@ -424,7 +456,7 @@ public class Example {
 		String filledScript = parser.fillWithDictionary(parser.getExDescription());
 		System.out.println("filled up template : \n"+filledTemplate);
 		System.out.println("filled up script : \n"+filledScript);		
-		ArrayList<String> samples =  parser.makeRfdt();
+		ArrayList<String> samples =  parser.makeDoubleVar();
 		for(String sample : samples)
 			System.out.println(sample);
 	}
