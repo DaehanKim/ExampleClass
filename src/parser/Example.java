@@ -76,7 +76,12 @@ public class Example {
 			this.templateVar.put(var, ret);
 			return ret;
 		case "SAMPLE":
-			ret = this.sample(kSplit);
+			while(true){
+				ret = this.sample(kSplit);
+				if(checkCondition(ret,kSplit[3]))
+					break;
+				System.out.println("Don't meet the conditions "+ret.get(0));
+			}
 			this.templateVar.put(var, ret);
 			return ret;
 		case "EVAL":
@@ -219,8 +224,10 @@ public class Example {
 			return true;
 		String filledCond = this.fillWithDictionary(cond);
 		String[] conds = filledCond.split(",");
+		Float sum = 0f;
 		for(int i=0;i<outputs.size();i++){
 			Float output = Float.parseFloat(outputs.get(i));
+			sum+=output;
 			for(int j=0;j<conds.length;j++)
 			{
 				//분수 처리를 위한 eval연산
@@ -255,6 +262,29 @@ public class Example {
 							return false;
 					}
 				}
+			}
+		}
+		for(int j=0;j<conds.length;j++)
+		{
+			//분수 처리를 위한 eval연산
+			Float checker=null;
+			try{
+				checker=Float.parseFloat(conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')')));
+			}catch(NumberFormatException e){
+				try{
+					ScriptEngineManager mgr = new ScriptEngineManager();
+					ScriptEngine engine = mgr.getEngineByName("JavaScript");							
+					checker=Float.parseFloat(String.valueOf(engine.eval(conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')')))));
+					}catch(ScriptException se){
+						System.err.println("ERROR "+se.getMessage());
+				}
+
+			}
+			//condition check
+			//output들의 합이 x여야함
+			if(conds[j].contains("sum")){
+				if(sum.compareTo(checker)!=0)
+					return false;
 			}
 		}
 		return true;
@@ -426,20 +456,54 @@ public class Example {
 		return null;
 	}
 
+	//두개의 상대도수분포표를 만들기 위한 데이터
+	public ArrayList<String> makeDoubleRfdt(){		
+		if(this.templateVar.get("[자료]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목]")), arrayToString(this.templateVar.get("[단위]"))));
+			samples.add("도수(명)");
+			samples.add("상대도수");
+			samples.add("도수(명)");
+			samples.add("상대도수");
+			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			String[] frequency2 = arrayToString(this.templateVar.get("[자료2]")).split(", ");
+			for(int i=0;i<frequency.length;i++){
+				int lvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+i*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
+				int rvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+(i+1)*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
+				samples.add(String.format("%d ~ %d", lvalue, rvalue));
+				samples.add(frequency[i]);
+				samples.add(String.format("$\\frac{%s}{%s}$", frequency[i], arrayToString(this.templateVar.get("[도수의 총합]"))));
+				samples.add(frequency2[i]);
+				samples.add(String.format("$\\frac{%s}{%s}$", frequency2[i], arrayToString(this.templateVar.get("[도수의 총합2]"))));
+			}
+			samples.add("합계");
+			samples.add(arrayToString(this.templateVar.get("[도수의 총합]")));
+			samples.add("1");
+			samples.add(arrayToString(this.templateVar.get("[도수의 총합2]")));
+			samples.add("1");
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
 	public static void main(String[] args) {
 		Example parser = new Example("$y=[a]x+[b]$가 x축과 [c]만나는 점 --> ([x1],0)\r\n" + 
 				"[x1] ~ [모든 경우]의 도수는 [계급의 도수]",
 				"x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!",
 				"{\"[A]\":\"CHOOSE\t1\t4\t\",\r\n" +
 				"\"[공통]\":\"CHOOSE\t1\t학생\t\",\r\n" +
-				"\"[개수]\":\"NUM\tint\t4,8\t\",\r\n" +
+				"\"[계급의 개수]\":\"NUM\tint\t4,8\t\",\r\n" +
+				"\"[계급의 크기]\":\"NUM\tint\t4,8\t\",\r\n" +
 				// "\"[제목1],[제목2],[단위],[최소]\":\"PAIRCHOOSE\t1\t1학년_2학년_반_1\t\",\r\n" +
-				"\"[제목1]\":\"CHOOSE\t1\t1학년\t\",\r\n" +
-				"\"[제목2]\":\"CHOOSE\t1\t2학년\t\",\r\n" +
+				"\"[제목]\":\"CHOOSE\t1\t1학년\t\",\r\n" +
 				"\"[단위]\":\"CHOOSE\t1\t반\t\",\r\n" +
-				"\"[최소]\":\"CHOOSE\t1\t1\t\",\r\n" +
-				"\"[자료1]\":\"SAMPLE\t[개수]\tUni([최소],8)\t\",\r\n" +
-				"\"[자료2]\":\"SAMPLE\t[개수]\tUni([최소],8)\t\",\r\n" +
+				"\"[최솟값]\":\"CHOOSE\t1\t40\t\",\r\n" +
+				"\"[자료]\":\"SAMPLE\t[계급의 개수]\tUni(1,8)\t\",\r\n" +
+				"\"[자료2]\":\"SAMPLE\t[계급의 개수]\tUni(-5,8)\tsum(0)\",\r\n" +
+				"\"[도수의 총합]\":\"EVAL\teval(([[자료]]).join('+'))\", \r\n" +
+				"\"[도수의 총합2]\":\"EVAL\teval(([[자료2]]).join('+'))\", \r\n" +
 				"\"[답2]\":\"EVAL\t[[자료]].sort(function(a,b){return a-b;}).toString()\"\r\n" +  
 				"}");
 
@@ -456,7 +520,7 @@ public class Example {
 		String filledScript = parser.fillWithDictionary(parser.getExDescription());
 		System.out.println("filled up template : \n"+filledTemplate);
 		System.out.println("filled up script : \n"+filledScript);		
-		ArrayList<String> samples =  parser.makeDoubleVar();
+		ArrayList<String> samples =  parser.makeDoubleRfdt();
 		for(String sample : samples)
 			System.out.println(sample);
 	}
