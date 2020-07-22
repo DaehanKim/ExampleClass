@@ -1,4 +1,4 @@
-//package parser;
+package parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -203,8 +203,8 @@ public class Example {
 
 	private ArrayList<String> choose(String[] kSplit) {
 		// implement choose method
-		int n = Integer.parseInt(kSplit[1]);
-		String[] optList = kSplit[2].split(",");
+		int n = Integer.parseInt(this.fillWithDictionary(kSplit[1]));
+		String[] optList = this.fillWithDictionary(kSplit[2]).split(",");
 		ArrayList<String> outputList = new ArrayList<String>();
 		ArrayList<Integer> indexList = new ArrayList<Integer>();
 		
@@ -492,8 +492,8 @@ public class Example {
 		Example parser = new Example("$y=[a]x+[b]$가 x축과 [c]만나는 점 --> ([x1],0)\r\n" + 
 				"[x1] ~ [모든 경우]의 도수는 [계급의 도수]",
 				"x에 0을 넣으면 y절편, y에 0을 넣으면 x절편을 구할 수 있습니다. 여기에서 x절편은 ([x1],0), y절편은 (0,[y1])가 되겠네요!",
-				"{\"[A]\":\"CHOOSE\t1\t4\t\",\r\n" +
-				"\"[공통]\":\"CHOOSE\t1\t학생\t\",\r\n" +
+				"{\"[A]\":\"CHOOSE\t1\t1,2\t\",\r\n" +
+				"\"[공통]\":\"CHOOSE\t[A]\t학생,친구, 브라더\t\",\r\n" +
 				"\"[계급의 개수]\":\"NUM\tint\t4,8\t\",\r\n" +
 				"\"[계급의 크기]\":\"NUM\tint\t4,8\t\",\r\n" +
 				// "\"[제목1],[제목2],[단위],[최소]\":\"PAIRCHOOSE\t1\t1학년_2학년_반_1\t\",\r\n" +
