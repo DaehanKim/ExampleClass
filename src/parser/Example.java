@@ -110,7 +110,6 @@ public class Example {
 			ScriptEngine engine = mgr.getEngineByName("JavaScript");
 			//engine.eval("require('core-js')");
 			ret.add(String.valueOf(engine.eval(foo)));
-//			System.out.println(String.valueOf(engine.eval(foo)));
 			}catch(ScriptException e){
 				System.err.println("ERROR "+e.getMessage());
 		}
