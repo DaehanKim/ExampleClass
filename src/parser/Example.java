@@ -94,7 +94,10 @@ public class Example {
 			this.templateVar.put(var, ret);
 			return ret;
 		case "IMAGE":
-			return this.image(kSplit);
+			ret = this.image(kSplit);
+			this.templateVar.put(var, ret);
+			return ret;
+
 		}
 		
 		return null;
@@ -118,8 +121,9 @@ public class Example {
 	}
 
 	private ArrayList<String> image(String[] kSplit) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<String> ret = new ArrayList<String> ();
+		ret.add(kSplit[1]);
+		return ret;
 	}
 
 	private ArrayList<String> sample(String[] kSplit) {
