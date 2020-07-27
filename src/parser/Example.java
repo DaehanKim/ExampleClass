@@ -62,6 +62,24 @@ public class Example {
 		String[] kSplit = keyword.split("\\\\t",-1);
 		ArrayList<String> ret;
 		switch (kSplit[0]) {
+		case "PAIRCHOOSE":
+			while(true){
+				ret = this.pairchoose(kSplit);
+				if(checkCondition(ret,kSplit[3]))
+					break;
+				System.out.println("Don't meet the conditions "+ret.get(0));
+			}
+			String[] varList =var.split(",");
+			for(int i=0;i<varList.length;i++){
+				ArrayList<String> tmpList = new ArrayList<String>();
+				for(int j=0;j<ret.size();j++){
+					if (j%varList.length==i) {
+						tmpList.add(ret.get(j));
+					}
+				}
+				this.templateVar.put(varList[i], tmpList);
+			}
+			return ret;
 		case "CHOOSE":
 			while(true){
 				ret = this.choose(kSplit);
@@ -226,6 +244,32 @@ public class Example {
 				
 		return outputList;
 	}
+
+	private ArrayList<String> pairchoose(String[] kSplit) {
+		// implement pairchoose method
+		int n = Integer.parseInt(this.fillWithDictionary(kSplit[1]));
+		String[] optList = this.fillWithDictionary(kSplit[2]).split(",");
+		ArrayList<String> outputList = new ArrayList<String>();
+		ArrayList<Integer> indexList = new ArrayList<Integer>();
+		
+		// sample options from candidates without replacement
+		while (outputList.size() < n) {
+			int rnd = new Random().nextInt(optList.length);
+			if (indexList.contains(rnd)) { continue; }
+			outputList.add(optList[rnd]);
+			indexList.add(rnd);
+		}
+		
+		ArrayList<String> outputpairList = new ArrayList<String>();
+		for(int i=0;i<outputList.size();i++){
+			String[] optpairList =outputList.get(i).split("_");
+			for(int j=0;j<optpairList.length;j++){
+				outputpairList.add(optpairList[j]);
+			}
+		}
+		return outputpairList;
+	}
+	
 
 	private boolean checkCondition(ArrayList<String> outputs, String cond) {
 		if(cond.equals(""))
