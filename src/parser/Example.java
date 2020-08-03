@@ -284,17 +284,22 @@ public class Example {
 			{
 				//분수 처리를 위한 eval연산
 				Float checker=null;
-				try{
-					checker=Float.parseFloat(conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')')));
-				}catch(NumberFormatException e){
+				String parm = conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')'));
+				if(parm == null || parm.equals(""))
+					checker=null;
+				else{
 					try{
-						ScriptEngineManager mgr = new ScriptEngineManager();
-						ScriptEngine engine = mgr.getEngineByName("JavaScript");							
-						checker=Float.parseFloat(String.valueOf(engine.eval(conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')')))));
-						}catch(ScriptException se){
-							System.err.println("ERROR "+se.getMessage());
+						checker=Float.parseFloat(parm);					
+					}catch(NumberFormatException e){
+						System.err.println("ERROR "+e.getMessage());
+						try{
+							ScriptEngineManager mgr = new ScriptEngineManager();
+							ScriptEngine engine = mgr.getEngineByName("JavaScript");							
+							checker=Float.parseFloat(String.valueOf(engine.eval(parm)));
+							}catch(ScriptException se){
+								System.err.println("ERROR "+se.getMessage());
+						}
 					}
-
 				}
 				//condition check
 				//x와 다른
@@ -307,9 +312,14 @@ public class Example {
 					if(output.compareTo(checker)==0||output.compareTo(checker)==1)
 						return false;
 				}
+				//x보다 큰
+				else if(conds[j].contains("gt")){
+					if(output.compareTo(checker)==0||output.compareTo(checker)==-1)
+						return false;
+				}
 				//소수 여야 함
 				else if(conds[j].contains("isPrime")){
-					for(int k=2;k<output/2;k++){
+					for(int k=2;k<=output/2;k++){
 						if(output.intValue()%k==0)
 							return false;
 					}
@@ -320,17 +330,23 @@ public class Example {
 		{
 			//분수 처리를 위한 eval연산
 			Float checker=null;
-			try{
-				checker=Float.parseFloat(conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')')));
-			}catch(NumberFormatException e){
+			String parm = conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')'));
+			if(parm == null || parm.equals(""))
+				checker=null;
+			else{
 				try{
-					ScriptEngineManager mgr = new ScriptEngineManager();
-					ScriptEngine engine = mgr.getEngineByName("JavaScript");							
-					checker=Float.parseFloat(String.valueOf(engine.eval(conds[j].substring(conds[j].indexOf('(')+1,conds[j].indexOf(')')))));
-					}catch(ScriptException se){
-						System.err.println("ERROR "+se.getMessage());
-				}
+					checker=Float.parseFloat(parm);
+				}catch(NumberFormatException e){
+					System.err.println("ERROR "+e.getMessage());
+					try{
+						ScriptEngineManager mgr = new ScriptEngineManager();
+						ScriptEngine engine = mgr.getEngineByName("JavaScript");							
+						checker=Float.parseFloat(String.valueOf(engine.eval(parm)));
+						}catch(ScriptException se){
+							System.err.println("ERROR "+se.getMessage());
+					}
 
+				}
 			}
 			//condition check
 			//output들의 합이 x여야함
@@ -553,6 +569,7 @@ public class Example {
 				"{\"[x1]\":\"CHOOSE\\t1\\t39,42,45\\t\", \r\n" + 
 				"\"[x2]\":\"EVAL\\t[x1]/3\", \r\n" + 
 				"\"[x3]\":\"EVAL\\t[x2]-2\", \r\n" + 
+				"\"[A]\":\"NUM\\tint\t2,10\tisPrime()\", \r\n" + 
 				"\"[x4]\":\"EVAL\\t[x2]+2\"}");
 
 		
