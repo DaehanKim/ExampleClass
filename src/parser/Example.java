@@ -1,4 +1,4 @@
-package parser;
+//package parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -248,7 +248,8 @@ public class Example {
 	private ArrayList<String> pairchoose(String[] kSplit) {
 		// implement pairchoose method
 		int n = Integer.parseInt(this.fillWithDictionary(kSplit[1]));
-		String[] optList = this.fillWithDictionary(kSplit[2]).split(",");
+		//String[] optList = this.fillWithDictionary(kSplit[2]).split(",");
+		String[] optList = kSplit[2].split(",");
 		ArrayList<String> outputList = new ArrayList<String>();
 		ArrayList<Integer> indexList = new ArrayList<Integer>();
 		
@@ -256,7 +257,7 @@ public class Example {
 		while (outputList.size() < n) {
 			int rnd = new Random().nextInt(optList.length);
 			if (indexList.contains(rnd)) { continue; }
-			outputList.add(optList[rnd]);
+			outputList.add(this.fillWithDictionary(optList[rnd]));
 			indexList.add(rnd);
 		}
 		
@@ -567,7 +568,7 @@ public class Example {
 				"3. 이제 세 수를 더해서 [x1]이 된다고 했기 때문에 식을 이렇게 세울 수 있겠죠? 방정식을 풀면 엑스는 [x2]입니다.\r\n" + 
 				"4. 연속하는 세 홀수중 가장 큰 홀수는 그럼 뭘까요? 바로 [x2]에 2를 더한 [x4]가 됩니다.",
 				"{\"[x1]\":\"CHOOSE\\t1\\t39,42,45\\t\", \r\n" + 
-				"\"[x2]\":\"EVAL\\t[x1]/3\", \r\n" + 
+				"\"[x2]\":\"EVAL\\tMath.cos(4)\", " + 
 				"\"[x3]\":\"EVAL\\t[x2]-2\", \r\n" + 
 				"\"[A]\":\"NUM\\tint\t2,10\tisPrime()\", \r\n" + 
 				"\"[x4]\":\"EVAL\\t[x2]+2\"}");
@@ -578,7 +579,7 @@ public class Example {
 		String filledScript = parser.fillWithDictionary(parser.getExDescription());
 		System.out.println("condition : ");
 		System.out.println("{\"[x1]\":\"CHOOSE\\t1\\t39,42,45\\t\"," + 
-				"\"[x2]\":\"EVAL\\t[x1]/3\", " + 
+				"\"[x2]\":\"EVAL\\tMath.cos(4)\", " + 
 				"\"[x3]\":\"EVAL\\t[x2]-2\", " + 
 				"\"[x4]\":\"EVAL\\t[x2]+2\"}");
 		
