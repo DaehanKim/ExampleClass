@@ -1,12 +1,24 @@
-//package parser;
+package parser;
 
+//import java.io.File;
+//import java.io.IOException;
+//import java.io.InputStream;
+//import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -35,7 +47,30 @@ public class Example {
 					ArrayList<String> out = this.interpretKeyword(entry.getKey(),entry.getValue().toString());
 				}
 	}
+	
+//	Class for shell output reading
+	private static class StreamGobbler implements Runnable {
+        private InputStream inputStream;
+        private Consumer<String> consumer;
 
+        public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
+            this.inputStream = inputStream;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void run() {
+            try {
+                new BufferedReader(new InputStreamReader(inputStream, "euc-kr")).lines()
+                        .forEach(consumer);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+	
+	
 	public String getExTemplate(){
 		return this.exTemplate;
 	}
@@ -139,8 +174,39 @@ public class Example {
 	}
 
 	private ArrayList<String> image(String[] kSplit) {
+//		for(String str:kSplit) {System.out.println(str);}
+		String funcKey = kSplit[1];
+		ArrayList<String> argList = new ArrayList<String>();
+
+        // **NOTE** change things to your own environment path!!		
+		argList.add("C:\\Users\\daehan_kim\\Anaconda3\\Scripts\\activate.bat"); // activate python virtual environment
+		argList.add("base");
+		argList.add("&&");
+		argList.add("C:\\Users\\daehan_kim\\Anaconda3\\python.exe"); // run Anaconda version python3
+		argList.add(funcKey+".py");
+		for(String str : kSplit[2].split("/")) {argList.add(str);}
+
+		ProcessBuilder pbuilder = new ProcessBuilder(argList);
+		pbuilder.directory(new File("src\\parser\\"));
+
+		// get image path obtained from running python module
+		System.out.println(String.format("Drawing plots using %s...", funcKey));
+		String text = "";
+		try {
+			Process proc = pbuilder.start();
+	        text = new BufferedReader(
+	        	      new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))
+	        	        .lines()
+	        	        .collect(Collectors.joining("\n"));
+	        int exitCode = proc.waitFor();
+//	        System.out.println(exitCode);
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		
 		ArrayList<String> ret = new ArrayList<String> ();
-		ret.add(kSplit[1]);
+		ret.add(text);
 		return ret;
 	}
 
@@ -567,21 +633,18 @@ public class Example {
 				"2. 세 홀수중 가운데 있는 수를 엑스라고 하면, 작은 홀수는 엑스 마이너스 2, 큰 홀수는 엑스 플러스 2가 됩니다.\r\n" + 
 				"3. 이제 세 수를 더해서 [x1]이 된다고 했기 때문에 식을 이렇게 세울 수 있겠죠? 방정식을 풀면 엑스는 [x2]입니다.\r\n" + 
 				"4. 연속하는 세 홀수중 가장 큰 홀수는 그럼 뭘까요? 바로 [x2]에 2를 더한 [x4]가 됩니다.",
-				"{\"[x1]\":\"CHOOSE\\t1\\t39,42,45\\t\", \r\n" + 
-				"\"[x2]\":\"EVAL\\tMath.cos(4)\", " + 
-				"\"[x3]\":\"EVAL\\t[x2]-2\", \r\n" + 
-				"\"[A]\":\"NUM\\tint\t2,10\tisPrime()\", \r\n" + 
-				"\"[x4]\":\"EVAL\\t[x2]+2\"}");
+				"{\"[image2]\":\"IMAGE\\thistogram\\t디스이즈_스파르타!/(a)/(b)/30,31,32,33,34,35,33,33,32,34\", \"[image1]\":\"IMAGE\\tfreq_dist_polygon\\t디스이즈_스파르타!/(a)/(b)/30,31,32,33,34,35,33,33,32,34\", \"[image3]\":\"IMAGE\\tscatterplot\\t디스이즈_스파르타!/(a)/(b)/30,31,32,33,34,35,33,33,32,34/30,25,26,26,27,28,29,20,15,16\"}");
 
 		
 		
 		String filledTemplate = parser.fillWithDictionary(parser.getExTemplate());
 		String filledScript = parser.fillWithDictionary(parser.getExDescription());
 		System.out.println("condition : ");
-		System.out.println("{\"[x1]\":\"CHOOSE\\t1\\t39,42,45\\t\"," + 
-				"\"[x2]\":\"EVAL\\tMath.cos(4)\", " + 
-				"\"[x3]\":\"EVAL\\t[x2]-2\", " + 
-				"\"[x4]\":\"EVAL\\t[x2]+2\"}");
+		System.out.println(parser.templateVar);
+//		System.out.println("{\"[x1]\":\"CHOOSE\\t1\\t39,42,45\\t\"," + 
+//				"\"[x2]\":\"EVAL\\tMath.cos(4)\", " + 
+//				"\"[x3]\":\"EVAL\\t[x2]-2\", " + 
+//				"\"[x4]\":\"EVAL\\t[x2]+2\"}");
 		
 		
 		System.out.println("filled up template : \n"+filledTemplate);
