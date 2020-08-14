@@ -1,4 +1,4 @@
-package parser;
+//package parser;
 
 //import java.io.File;
 //import java.io.IOException;
@@ -177,36 +177,51 @@ public class Example {
 //		for(String str:kSplit) {System.out.println(str);}
 		String funcKey = kSplit[1];
 		ArrayList<String> argList = new ArrayList<String>();
-
-        // **NOTE** change things to your own environment path!!		
-		argList.add("C:\\Users\\daehan_kim\\Anaconda3\\Scripts\\activate.bat"); // activate python virtual environment
-		argList.add("base");
-		argList.add("&&");
-		argList.add("C:\\Users\\daehan_kim\\Anaconda3\\python.exe"); // run Anaconda version python3
-		argList.add(funcKey+".py");
-		for(String str : kSplit[2].split("/")) {argList.add(str);}
-
-		ProcessBuilder pbuilder = new ProcessBuilder(argList);
-		pbuilder.directory(new File("src\\parser\\"));
-
-		// get image path obtained from running python module
-		System.out.println(String.format("Drawing plots using %s...", funcKey));
-		String text = "";
-		try {
-			Process proc = pbuilder.start();
-	        text = new BufferedReader(
-	        	      new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))
-	        	        .lines()
-	        	        .collect(Collectors.joining("\n"));
-	        int exitCode = proc.waitFor();
-//	        System.out.println(exitCode);
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		
 		ArrayList<String> ret = new ArrayList<String> ();
-		ret.add(text);
+
+		//make table data
+		if(funcKey.equals("variable"))
+			ret=makeVar();
+
+		else if(funcKey.equals("sal"))
+			ret=makeSal();
+
+		else if(funcKey.equals("stem"))
+			ret=makeStem();
+
+		else if(funcKey.equals("ratio"))
+			ret=makeRatio();
+
+		//make image
+		else{
+	        // **NOTE** change things to your own environment path!!		
+			argList.add("C:\\Users\\daehan_kim\\Anaconda3\\Scripts\\activate.bat"); // activate python virtual environment
+			argList.add("base");
+			argList.add("&&");
+			argList.add("C:\\Users\\daehan_kim\\Anaconda3\\python.exe"); // run Anaconda version python3
+			argList.add(funcKey+".py");
+			for(String str : kSplit[2].split("/")) {argList.add(str);}
+
+			ProcessBuilder pbuilder = new ProcessBuilder(argList);
+			pbuilder.directory(new File("src\\parser\\"));
+
+			// get image path obtained from running python module
+			System.out.println(String.format("Drawing plots using %s...", funcKey));
+			String text = "";
+			try {
+				Process proc = pbuilder.start();
+		        text = new BufferedReader(
+		        	      new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))
+		        	        .lines()
+		        	        .collect(Collectors.joining("\n"));
+		        int exitCode = proc.waitFor();
+	//	        System.out.println(exitCode);
+			} catch (IOException | InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			ret.add(text);
+		}
 		return ret;
 	}
 
@@ -461,9 +476,9 @@ public class Example {
 		if(this.templateVar.get("[자료]")!=null)
 		{
 			ArrayList<String> samples = new ArrayList<String>();
-			samples.add(arrayToString(this.templateVar.get("[제목]")));
-			samples.add(arrayToString(this.templateVar.get("[단위]")));
-			samples.add(arrayToString(this.templateVar.get("[자료]")));
+			samples.add("1");
+			samples.add("1");
+			samples.add(arrayToString(this.templateVar.get("[자료]")).replace(",",""));
 			return samples;
 		}
 		System.err.println("ERROR: doesn't have data");
@@ -475,8 +490,8 @@ public class Example {
 		if(this.templateVar.get("[자료]")!=null)
 		{
 			ArrayList<String> samples = new ArrayList<String>();
-			samples.add(arrayToString(this.templateVar.get("[제목]")));
-			samples.add(arrayToString(this.templateVar.get("[단위]")));
+			samples.add("2");
+			samples.add("2");			
 			samples.add("줄기");
 			samples.add("잎");
 			String[] temp = arrayToString(this.templateVar.get("[자료]")).split(", ");
@@ -501,14 +516,48 @@ public class Example {
 		return null;
 	}
 
+
+	//줄기와 잎 그림에서 줄기만 있는 표로 만들기 위한 데이터
+	public ArrayList<String> makeStem(){
+		if(this.templateVar.get("[자료]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add("2");
+			samples.add("2");			
+			samples.add("줄기");
+			samples.add("잎");
+			String[] temp = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			Arrays.sort(temp);
+			String stems="",leaves="";
+			for(int i=0;i<temp.length;i++){		
+				if(stems.contains(temp[i].substring(0,1)))
+					leaves+=" "+temp[i].substring(1,2);
+				else
+				{
+					stems+="\n"+temp[i].substring(0,1);
+					leaves+="\n"+temp[i].substring(1,2);
+				}
+			}
+			stems=stems.replaceFirst("\n","");
+			leaves=leaves.replaceFirst("\n","");
+			samples.add(stems);
+			//samples.add(leaves);
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
 	//도수분포표를 만들기 위한 데이터
 	public ArrayList<String> makeFdt(){
 		if(this.templateVar.get("[자료]")!=null)
 		{
 			ArrayList<String> samples = new ArrayList<String>();
+			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			samples.add(Integer.toString(frequency.length+2));
+			samples.add("2");
 			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목]")), arrayToString(this.templateVar.get("[단위]"))));
 			samples.add("도수(명)");
-			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
 			for(int i=0;i<frequency.length;i++){
 				int lvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+i*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
 				int rvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+(i+1)*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
@@ -528,10 +577,12 @@ public class Example {
 		if(this.templateVar.get("[자료]")!=null)
 		{
 			ArrayList<String> samples = new ArrayList<String>();
+			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			samples.add(Integer.toString(frequency.length+2));
+			samples.add("3");
 			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목]")), arrayToString(this.templateVar.get("[단위]"))));
 			samples.add("도수(명)");
 			samples.add("상대도수");
-			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
 			for(int i=0;i<frequency.length;i++){
 				int lvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+i*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
 				int rvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+(i+1)*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
@@ -553,8 +604,10 @@ public class Example {
 		if(this.templateVar.get("[자료]")!=null)
 		{
 			ArrayList<String> samples = new ArrayList<String>();
-			samples.add("변량");
 			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			samples.add("2");
+			samples.add(Integer.toString(frequency.length+1));
+			samples.add("변량");
 			int sum=0;
 			for(int i=0;i<frequency.length;i++){
 				samples.add(frequency[i]);
@@ -575,8 +628,10 @@ public class Example {
 		if(this.templateVar.get("[자료1]")!=null || this.templateVar.get("[자료2]")!=null)
 		{
 			ArrayList<String> samples = new ArrayList<String>();
-			samples.add(arrayToString(this.templateVar.get("[공통]")));
 			int num = Integer.parseInt(arrayToString(this.templateVar.get("[개수]")));
+			samples.add("3");
+			samples.add(Integer.toString(num+1));
+			samples.add(arrayToString(this.templateVar.get("[공통]")));
 			for(int i=0;i<num;i++)
 				samples.add(Character.toString((char)(i+65)));
 			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목1]")), arrayToString(this.templateVar.get("[단위]"))));
@@ -596,13 +651,15 @@ public class Example {
 		if(this.templateVar.get("[자료]")!=null)
 		{
 			ArrayList<String> samples = new ArrayList<String>();
+			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
+			String[] frequency2 = arrayToString(this.templateVar.get("[자료2]")).split(", ");
+			samples.add(Integer.toString(frequency.length+2));
+			samples.add("5");
 			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목]")), arrayToString(this.templateVar.get("[단위]"))));
 			samples.add("도수(명)");
 			samples.add("상대도수");
 			samples.add("도수(명)");
 			samples.add("상대도수");
-			String[] frequency = arrayToString(this.templateVar.get("[자료]")).split(", ");
-			String[] frequency2 = arrayToString(this.templateVar.get("[자료2]")).split(", ");
 			for(int i=0;i<frequency.length;i++){
 				int lvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+i*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
 				int rvalue = Integer.parseInt(arrayToString(this.templateVar.get("[최솟값]")))+(i+1)*Integer.parseInt(arrayToString(this.templateVar.get("[계급의 크기]")));
@@ -617,6 +674,54 @@ public class Example {
 			samples.add("1");
 			samples.add(arrayToString(this.templateVar.get("[도수의 총합2]")));
 			samples.add("1");
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
+	//제곱근표를 위한 데이터
+	public ArrayList<String> makeSqrt(){
+		if(this.templateVar.get("[H]")!=null && this.templateVar.get("[V]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add("5");
+			samples.add("6");
+			samples.add("수");
+			for(int i=0;i<4;i++)
+				samples.add(Integer.toString(Integer.parseInt(arrayToString(this.templateVar.get("[H]")))+i));
+			samples.add("$\\cdots$");
+			for(int i=0;i<3;i++)
+			{
+				float lvalue = Float.parseFloat(arrayToString(this.templateVar.get("[V]")))+i*0.1f;
+				samples.add(String.format("%.1f", lvalue));
+				for(int j=0;j<4;j++)
+					samples.add(String.format("%.3f", Math.sqrt(lvalue+0.01*(j+Integer.parseInt(arrayToString(this.templateVar.get("[H]")))))));
+				samples.add("$\\cdots$");
+			}
+			for(int i=0;i<6;i++)
+				samples.add("$\\vdots$");
+			return samples;
+		}
+		System.err.println("ERROR: doesn't have data");
+		return null;
+	}
+
+	//비례식을 위한 데이터
+	public ArrayList<String> makeRatio(){
+		if(this.templateVar.get("[H]")!=null && this.templateVar.get("[V]")!=null)
+		{
+			ArrayList<String> samples = new ArrayList<String>();
+			samples.add("2");
+			samples.add("5");
+			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목1]")), arrayToString(this.templateVar.get("[단위1]"))));
+			String[] temp = this.templateVar.get("[x_tb]").get(0).split(",");
+			for(int i=0;i<4;i++)
+				samples.add(temp[i]);
+			samples.add(String.format("%s(%s)", arrayToString(this.templateVar.get("[제목2]")), arrayToString(this.templateVar.get("[단위2]"))));
+			temp = this.templateVar.get("[y_tb]").get(0).split(",");
+			for(int i=0;i<4;i++)
+				samples.add(temp[i]);
 			return samples;
 		}
 		System.err.println("ERROR: doesn't have data");
