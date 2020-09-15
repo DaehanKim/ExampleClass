@@ -19,11 +19,11 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.script.ScriptContext;
 import javax.script.Bindings;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -162,9 +162,7 @@ public class Example {
 		String foo = this.fillWithDictionary(kSplit[1]).replace("--","");
 		ArrayList<String> ret = new ArrayList<String> ();
 		try{
-			ScriptEngineManager mgr = new ScriptEngineManager();
-			ScriptEngine engine = mgr.getEngineByName("JavaScript");
-			//engine.eval("require('core-js')");
+			ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
 			ret.add(String.valueOf(engine.eval(foo)));
 			}catch(ScriptException e){
 				System.err.println("ERROR "+e.getMessage());
@@ -375,8 +373,7 @@ public class Example {
 					}catch(NumberFormatException e){
 						System.err.println("ERROR "+e.getMessage());
 						try{
-							ScriptEngineManager mgr = new ScriptEngineManager();
-							ScriptEngine engine = mgr.getEngineByName("JavaScript");							
+							ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();					
 							checker=Float.parseFloat(String.valueOf(engine.eval(parm)));
 							}catch(ScriptException se){
 								System.err.println("ERROR "+se.getMessage());
@@ -421,8 +418,7 @@ public class Example {
 				}catch(NumberFormatException e){
 					System.err.println("ERROR "+e.getMessage());
 					try{
-						ScriptEngineManager mgr = new ScriptEngineManager();
-						ScriptEngine engine = mgr.getEngineByName("JavaScript");							
+						ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();					
 						checker=Float.parseFloat(String.valueOf(engine.eval(parm)));
 						}catch(ScriptException se){
 							System.err.println("ERROR "+se.getMessage());
@@ -729,16 +725,13 @@ public class Example {
 	}
 
 	public static void main(String[] args) {
-		Example parser = new Example("수에 대한 문제\r\n" + 
-				"1. 연속하는 세 홀수의 합이 [x1]일 때, 가장 큰 홀수를 구하시오.\r\n" + 
-				"2. 연속하는 세 홀수를 $x-2, x, x+2$라고 하면,\r\n" + 
-				"3.  $(x-2) + x + (x+2) = [x1] \\rightarrow 3x = [x1] \\rightarrow x = [x2] $\r\n" + 
-				"4. 따라서 연속하는 세 홀수는 [x3], [x2], [x4]이므로 가장 큰 홀수는 [x4]이다.",
+		Example parser = new Example("$\\angle{B}=[ang], a=[a]cm, c=[c]cm \\rightarrow S={{1\\over2}[a]\\times[c]\\ {\\sin{[ang]}}}=#[s]#\r\n" + 
+				"$\\angle{B}=[ang1], a=[a]cm, c=[c]cm \\rightarrow S={{1\\over2}[a]\\times[c]\\ {\\sin{(180^\\circ-[ang1])}}}=#[s]#$",
 				"1. 문제를 보면 연속하는 세 홀수라는 말이 나옵니다.\r\n" + 
 				"2. 세 홀수중 가운데 있는 수를 엑스라고 하면, 작은 홀수는 엑스 마이너스 2, 큰 홀수는 엑스 플러스 2가 됩니다.\r\n" + 
 				"3. 이제 세 수를 더해서 [x1]이 된다고 했기 때문에 식을 이렇게 세울 수 있겠죠? 방정식을 풀면 엑스는 [x2]입니다.\r\n" + 
 				"4. 연속하는 세 홀수중 가장 큰 홀수는 그럼 뭘까요? 바로 [x2]에 2를 더한 [x4]가 됩니다.",
-				"{\"[image2]\":\"IMAGE\\thistogram\\t디스이즈_스파르타!/(a)/(b)/30,31,32,33,34,35,33,33,32,34\", \"[image1]\":\"IMAGE\\tfreq_dist_polygon\\t디스이즈_스파르타!/(a)/(b)/30,31,32,33,34,35,33,33,32,34\", \"[image3]\":\"IMAGE\\tscatterplot\\t디스이즈_스파르타!/(a)/(b)/30,31,32,33,34,35,33,33,32,34/30,25,26,26,27,28,29,20,15,16\"}");
+				"{\"[a]\":\"CHOOSE\t1\t5\t\",\"[c]\":\"CHOOSE\t1\t2\t\",\"[ang],[ang1],[res],[res1]\":\"PAIRCHOOSE\t1\t60_120_루트삼_\t\", \"[s]\":\"EVAL\t[a]*[c]/2/2\"}");
 
 		
 		
