@@ -1,4 +1,4 @@
-//package parser;
+package parser;
 
 //import java.io.File;
 //import java.io.IOException;
@@ -178,21 +178,20 @@ public class Example {
 		ArrayList<String> ret = new ArrayList<String> ();
 
 		//make table data
-		if(funcKey.equals("variable"))
+		switch (funcKey) {
+		case "variable":
 			ret=makeVar();
-
-		else if(funcKey.equals("sal"))
+		case "sal":
 			ret=makeSal();
-
-		else if(funcKey.equals("stem"))
+		case "stem":
 			ret=makeStem();
-
-		else if(funcKey.equals("ratio"))
+		case "ratio":
 			ret=makeRatio();
-
-		//make image
-		else{
-	        // **NOTE** change things to your own environment path!!		
+		case "url":
+			ret.add(kSplit[2]);
+		default:
+			//make image using python modules
+			// **NOTE** change things to your own environment path!!		
 			argList.add("C:\\Users\\daehan_kim\\Anaconda3\\Scripts\\activate.bat"); // activate python virtual environment
 			argList.add("base");
 			argList.add("&&");
@@ -213,13 +212,14 @@ public class Example {
 		        	        .lines()
 		        	        .collect(Collectors.joining("\n"));
 		        int exitCode = proc.waitFor();
-	//	        System.out.println(exitCode);
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}
 			
 			ret.add(text);
 		}
+		
+		
 		return ret;
 	}
 
@@ -731,7 +731,7 @@ public class Example {
 				"2. 세 홀수중 가운데 있는 수를 엑스라고 하면, 작은 홀수는 엑스 마이너스 2, 큰 홀수는 엑스 플러스 2가 됩니다.\r\n" + 
 				"3. 이제 세 수를 더해서 [x1]이 된다고 했기 때문에 식을 이렇게 세울 수 있겠죠? 방정식을 풀면 엑스는 [x2]입니다.\r\n" + 
 				"4. 연속하는 세 홀수중 가장 큰 홀수는 그럼 뭘까요? 바로 [x2]에 2를 더한 [x4]가 됩니다.",
-				"{\"[a]\":\"CHOOSE\t1\t5\t\",\"[c]\":\"CHOOSE\t1\t2\t\",\"[ang],[ang1],[res],[res1]\":\"PAIRCHOOSE\t1\t60_120_루트삼_\t\", \"[s]\":\"EVAL\t[a]*[c]/2/2\"}");
+				"{\"[a]\":\"CHOOSE\t1\t5\t\",\"[c]\":\"CHOOSE\t1\t2\t\",\"[ang],[ang1],[res],[res1]\":\"PAIRCHOOSE\t1\t60_120_루트삼_\t\", \"[s]\":\"EVAL\t[a]*[c]/2/2\", \"[image1]\":\"IMAGE\turl\tsample_url.png\"}");
 
 		
 		
